@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace WebApp.Test
     public static class ApiExtensions
     {
         public static async Task<HttpResponseMessage> SignInAsync(this HttpClient client, string userName) =>
-            await client.PostAsync($"api/sign-in/{userName}", null);
+            await client.PostAsync($"api/sign-in/", new FormUrlEncodedContent(new Dictionary<string, string>() {{ "userName", userName }}));
 
         public static async Task<HttpResponseMessage> GetAccountAsync(this HttpClient client) => await client.GetAsync("api/account");
 

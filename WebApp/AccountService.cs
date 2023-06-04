@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace WebApp
 {
@@ -6,6 +7,7 @@ namespace WebApp
     {
         private readonly IAccountCache _cache;
         private readonly IAccountDatabase _db;
+        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         public AccountService(IAccountCache cache, IAccountDatabase db)
         {
@@ -25,24 +27,40 @@ namespace WebApp
 
         public async ValueTask<Account> LoadOrCreateAsync(string id)
         {
-            if (!_cache.TryGetValue(id, out var account))
+            await _semaphore.WaitAsync();
+            try
             {
-                account = await _db.GetOrCreateAccountAsync(id);
-                _cache.AddOrUpdate(account);
-            }
+                if (!_cache.TryGetValue(id, out var account))
+                {
+                    account = await _db.GetOrCreateAccountAsync(id);
+                    _cache.AddOrUpdate(account);
+                }
 
-            return account;
+                return account;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         public async ValueTask<Account> LoadOrCreateAsync(long id)
         {
-            if (!_cache.TryGetValue(id, out var account))
+            await _semaphore.WaitAsync();
+            try
             {
-                account = await _db.GetOrCreateAccountAsync(id);
-                _cache.AddOrUpdate(account);
-            }
+                if (!_cache.TryGetValue(id, out var account))
+                {
+                    account = await _db.GetOrCreateAccountAsync(id);
+                    _cache.AddOrUpdate(account);
+                }
 
-            return account;
-        }
+                return account;
+            }
+			finally
+			{
+				_semaphore.Release();
+			}
+		}
     }
 }

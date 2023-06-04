@@ -45,7 +45,8 @@ namespace WebApp.Test
         {
             var client = Env.WebAppHost.GetClient();
             var res = await client.SignInAsync(login);
-            client.DefaultRequestHeaders.Add(HeaderNames.Cookie, res.Headers.GetValues(HeaderNames.SetCookie));
+            var values = res.Headers.GetValues(HeaderNames.SetCookie);
+			client.DefaultRequestHeaders.Add(HeaderNames.Cookie, values);
             return client;
         }
     }
